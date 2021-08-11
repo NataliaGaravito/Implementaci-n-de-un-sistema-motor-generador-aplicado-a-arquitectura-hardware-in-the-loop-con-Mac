@@ -58,7 +58,7 @@ float pesoEntrada[10][6] = {{ 0.10433859,  0.07615146,  0.30752148, -0.37842551,
 float pesoSalida[6] = {0.15030452, -0.52454721,  0.67321959, -0.97381235,  0.16827032, 0.60860765};
 // Peso de coeficientes neuronas vacias
 float pesoVacioEntrada[6] = { -0.28368652, -0.08180608,  0.04067154,  0.3984017 ,  0.34561398, 0.23757913};
-float pesoVacioSalida = 0.03162424;
+float pesoVacioSalida = 0.04162424;
 
 // Variables redes neuronales
 float salidaCapaUno[4];
@@ -88,7 +88,7 @@ void loop(void) {
 
   pwmMotor = random(30, 255);
 
-  for (numeroDato = 1; numeroDato <= 300; numeroDato++) {
+  for (int i = 1; i <= 300; i++) {
 
     analogWrite(motorP, pwmMotor); //valor 0-255
 
@@ -124,11 +124,11 @@ void loop(void) {
 
     red();
 
-    autorreresoresCorriente[3] = pesoVacioSalida;
+    autorreresoresCorriente[3] = prediccionCapaSalida;
 
-    Serial.println( (String) pesoVacioSalida + "," + cGenerador );
+    Serial.println( (String) prediccionCapaSalida + "," + cGenerador );
 
-    //Serial.println( (String) pwmMotor + ",  " + rpmMotor + "," + rpmGenerador + ",  " + cMotor + "," + cGenerador + ",  " + vMotor + "," + vGenerador + ",  " + resistencia + ",  " + numeroDato + "," + ndato + ",  " + pesoVacioSalida + "," + corriente1 + "," + corriente2 + "," + corriente3 + ",  " + RMSE);
+    //Serial.println( (String) pwmMotor + ",  " + rpmMotor + "," + rpmGenerador + ",  " + cMotor + "," + cGenerador + ",  " + vMotor + "," + vGenerador + ",  " + resistencia + ",  " + numeroDato  + ",  --- " + prediccionCapaSalida+ ",   " + corriente1 + "," + corriente2 + "," + corriente3 );
     delay(5);
 
     autorreresoresCorriente[0] = autorreresoresCorriente[1];
@@ -136,6 +136,7 @@ void loop(void) {
     autorreresoresCorriente[2] = autorreresoresCorriente[3];
   }
   rpmMotor = rpmGenerador = 0; //para cambiar de pwm
+  numeroDato++;
 }
 
 void interrupcionMotor()
@@ -177,16 +178,12 @@ void red ()
   //primera capa oculta
   for (int i = 0; i <= 5; i++)
   {
-    salidaCapaUno[i] = logic( pesoVacioEntrada[i] + ((pwmMotorN * pesoEntrada[0][i]) + (rpmMotorN * pesoEntrada[1][i])
-                              + (rpmGeneradorN * pesoEntrada[2][i]) + (cMotorN * pesoEntrada[3][i]) + (vMotorN * pesoEntrada[4][i])
-                              + (vGeneradorN * pesoEntrada[5][i]) + (resistenciaN * pesoEntrada[6][i]) + (corriente1N * pesoEntrada[7][i])
-                              + (corriente2N * pesoEntrada[8][i]) + (corriente3N * pesoEntrada[9][i])));
+    salidaCapaUno[i] = logic( pesoVacioEntrada[i] + ((pwmMotorN * pesoEntrada[0][i]) + (rpmMotorN * pesoEntrada[1][i])+ (rpmGeneradorN * pesoEntrada[2][i]) + (cMotorN * pesoEntrada[3][i]) + (vMotorN * pesoEntrada[4][i])+ (vGeneradorN * pesoEntrada[5][i]) + (resistenciaN * pesoEntrada[6][i]) + (corriente1N * pesoEntrada[7][i])+ (corriente2N * pesoEntrada[8][i]) + (corriente3N * pesoEntrada[9][i])));
   }
 
   //salida
-  pesoVacioSalida = ( pesoVacioSalida + ((salidaCapaUno[0] * pesoSalida[0]) + (salidaCapaUno[1] * pesoSalida[1])
-                                         + (salidaCapaUno[2] * pesoSalida[2]) + (salidaCapaUno[3] * pesoSalida[3]) + (salidaCapaUno[4] * pesoSalida[4]) + (salidaCapaUno[5] * pesoSalida[5])));
+  prediccionCapaSalida = ( pesoVacioSalida + ((salidaCapaUno[0] * pesoSalida[0]) + (salidaCapaUno[1] * pesoSalida[1])+ (salidaCapaUno[2] * pesoSalida[2]) + (salidaCapaUno[3] * pesoSalida[3]) + (salidaCapaUno[4] * pesoSalida[4]) + (salidaCapaUno[5] * pesoSalida[5])));
 
   //quitar normalizacion
-  pesoVacioSalida = (pesoVacioSalida * (648.80 - (-1.30))) + (-1.30);
+  prediccionCapaSalida = (prediccionCapaSalida * (648.80 - (-1.30))) + (-1.30);
 }
