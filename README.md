@@ -1,5 +1,8 @@
 # Implementación de un sistema motor-generador aplicado a arquitectura “hardware in the loop” con “Machine Learning”
 
+## Contribucion
+Se desarrollo un articulo basado en el tema, el cual fue aceptado en IEEE 5th Colombian Conference on Automatic Control (CCAC). 19 al 22 de octubre del 2021. 
+
 ## Planteamiento del problema
 Realizar el modelamiento de un sistema motor-generador por medio de redes neuronales artificiales del tipo perceptron multicapa, para ser implementado en un sistema embebido de bajo costo, el cual permita ser utilizado como dispositivo en una arquitectura hardware in the loop.
 
