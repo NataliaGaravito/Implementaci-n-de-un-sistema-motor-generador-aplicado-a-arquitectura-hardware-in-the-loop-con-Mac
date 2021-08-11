@@ -1,1 +1,0 @@
-# Implementaci-n-de-un-sistema-motor-generador-aplicado-a-arquitectura-hardware-in-the-loop-con-Mac
