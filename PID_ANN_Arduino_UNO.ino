@@ -4,7 +4,7 @@ float Pv = 0; // Variable proceso, porcentaje voltaje
 float Sp = 0; // Set point
 int Cv = 0; // variable de control PWM
 
-float recieveData; // Variable donde se guardan los valores recibidos por el maestro 
+float recieveData; // Variable donde se guardan los valores recibidos por el maestro
 double sendData; // Variable donde se guardan los valores para enviar al maestro
 
 float error = 0; // Eerror actual
@@ -21,7 +21,6 @@ unsigned long pasado = 0;
 unsigned long actual;
 float T = 3; // Tiempo de muestreo en ms
 
-
 void setup() {
   Serial.begin(9600); // Establece velocidad de datos para puerto serial
   Wire.begin(0x20); // Indica que funcionara como esclavo
@@ -30,7 +29,7 @@ void setup() {
 }
 
 void loop() {
-  delay(0.01);
+  delay(5);
 }
 
 void receiveEvent(int bytes)
@@ -38,19 +37,19 @@ void receiveEvent(int bytes)
   recieveData = 0;
   uint8_t index = 0;
 
- // Almacenar datos en recieveData mientras los envie el maestro
+  // Almacenar datos en recieveData mientras los envie el maestro
   while (Wire.available())
   {
     byte* pointer = (byte*)& recieveData;
-    *(pointer + index) = (byte)Wire.read(); 
-    index++; 
+    *(pointer + index) = (byte)Wire.read();
+    index++;
   }
-  
+
   Pv = abs(map(recieveData, 0, 9535.91, 0, 100)); // Convertir valor de voltaje (prediccion) recibido por el maestro a porcentaje
   Serial.print((String) "  Input " + Pv); // Imprimir valor de porcentaje
 
   // Leer valor de potenciometro Set Point
-  float setpoint = analogRead(A1); 
+  float setpoint = analogRead(A1);
   Sp = map(setpoint, 0, 1023, 0, 100); // Convertir valor de potenciometro a porcentaje
   Serial.print((String) "  setponit " + Sp);
 
@@ -58,9 +57,10 @@ void receiveEvent(int bytes)
 
 void requestEvent() {
   actual = millis(); // Medir tiempo desde que se inicializa funcion
-  unsigned long dt = actual - pasado; // Calcular tiempo transcurrido desde la ultima vez que fue llamada 
+  unsigned long dt = actual - pasado; // Calcular tiempo transcurrido desde la ultima vez que fue llamada
+  delay(100);
 
-  if (dt >= T) // El dt debe de ser mayor al tiempo de muestreo 
+  if (dt >= T) // El dt debe de ser mayor al tiempo de muestreo
   {
     pasado = actual; // Guardar valor actual en pasado para proxima vez que sea llamado
 
@@ -69,7 +69,7 @@ void requestEvent() {
 
     P = Kp * error; // Termino P
 
-    I = I + (Kp / Ti) * error;  // Termino I
+    I = I + (Kp / Ti) * error * (T);  // Termino I
 
     error_1 = error; // Guardar error en tiempo pasado
 
@@ -79,7 +79,6 @@ void requestEvent() {
   }
   Serial.println((String) "  Output " + Cv); // Imprimir valor variable de control
 
-  sendData = (double)Cv; // Convertir valor variable de control a double para poder enviarlo 
+  sendData = (double)Cv; // Convertir valor variable de control a double para poder enviarlo
   Wire.write((byte*)& sendData, sizeof(sendData)); // Enviar variable de control y tamaño
-  
 }
