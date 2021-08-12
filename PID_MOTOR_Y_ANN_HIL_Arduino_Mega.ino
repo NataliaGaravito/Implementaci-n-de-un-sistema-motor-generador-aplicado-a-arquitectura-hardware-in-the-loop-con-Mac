@@ -48,34 +48,32 @@ int forSobreImpulso = 0; // Limite de for a un solo ciclo para el sobre impulso
 
 // Variables autorregresoras
 float voltaje1; // Un autorregresor variable voltaje
-float voltaje2; // Dos autorregresores variable voltaje
-float arregloVoltajes[3]; // Arreglo donde se realiza el corriemiento de autorregresores
+float arregloVoltajes[2] = {0, 0}; // Arreglo donde se realiza el corriemiento de autorregresores
 float pwm1; // Un autorregresor variable PWM
 float pwm2; // Dos autorregresores variable PWM
 float pwm3; // Tres autorregresores variable PWM
-float arregloPwm[4]; // Arreglo donde se realiza el corriemiento de autorregresores
+float arregloPwm[4] = {0, 0, 0, 0}; // Arreglo donde se realiza el corriemiento de autorregresores
 float resistencia1; // Un autorregresor variable resistencia
 float resistencia2; // Dos autorregresores variable resistencia
 float resistencia3; // Tres autorregresores variable resistencia
-float arregloResistencia[4]; // Arreglo donde se realiza el corriemiento de autorregresores
+float arregloResistencia[4] = {0, 0, 0, 0} ; // Arreglo donde se realiza el corriemiento de autorregresores
 
 // Peso de coeficientes variables de entrada
-float pesoEntrada[10][4] = {{ 0.0503495 ,  0.09787219,  0.230692  , -0.18955838},
-  { 0.12414322, -0.24473884,  0.04695013, -0.25383953},
-  { 0.14548225, -0.50778034,  0.26215501, -0.07860203},
-  { 0.49524334, -0.01081944, -0.46197639, -0.68004976},
-  { 0.06621314, -0.187868  , -0.22307271,  0.14026993},
-  { 0.15347677,  0.18251413,  0.36365175,  0.09579585},
-  { 0.35472423,  0.09908581,  0.08739848, -0.22009138},
-  { -0.14705993, -0.03579321,  0.1715042 ,  0.16386781},
-  { -1.60063049,  0.00878672,  0.48240163, -0.04605388},
-  { -1.12231726, -0.38753033,  0.73385017, -0.33213966}
+float pesoEntrada[9][4] = {{ 0.12515174, -0.06496522, -0.02233523,  0.17672873},
+  { -0.13229999,  0.24495476, -0.22808885,  0.15320668},
+  { -0.11358389,  0.07300928,  0.24523483, -0.12512024},
+  { -0.36764584,  0.01045529,  0.30521235, -0.04852158},
+  { -0.09244732,  0.12715516,  0.19600223, -0.36366692},
+  { 0.18660852,  0.04268451,  0.24399706,  0.31644691},
+  { 0.32752022,  0.28836022, -0.13912687,  0.23874465},
+  { -0.20907473, -0.25344475, -0.121306  , -0.16222551},
+  { -1.07961662,  1.17150796, -1.08148222,  0.18605953}
 };
 // Peso de coeficientes primera capa oculta
-float pesoSalida[4] = { -0.92563619,  -0.34144565,  1.19496599,  -0.43680658};
+float pesoSalida[4] = { -0.47229462, 1.49455775, -1.36933074, -0.05717797};
 // Peso de coeficientes neuronas vacias
-float pesoVacioUno[4] = {  1.33780168,  0.19494858, -0.0168969 ,  0.1677481};
-float  pesoVacioSalida = 0.56086622;
+float pesoVacioUno[4] = {  0.20034963, -0.37046268, -0.01492491,  0.09956253};
+float  pesoVacioSalida = 0.36952136;
 
 // Variables redes neuronales
 float salidaCapaUno[4];
@@ -120,13 +118,12 @@ void  sistemaRedNeuronal() {
     *(pointer + index) = (byte)Wire.read();
     index++;
   }
-
-  pwmMotor = valorRecibido;
+  Serial.println((String)"recibido" +  valorRecibido);
+  pwmRed = valorRecibido;
 
   // Asignar valores de arreglo de autorregresores a variables que seran usadas en la red neuronal  d
   // Aurotorresores de la variable de salida (Voltaje)
   voltaje1 = arregloVoltajes[1];
-  voltaje2 = arregloVoltajes[0];
   // Autorregresores de la variable de resistencia
   resistencia1 = arregloResistencia[2];
   resistencia2 = arregloResistencia[1];
@@ -139,6 +136,7 @@ void  sistemaRedNeuronal() {
   // Llamar la funcion de red neuronal
   red();
 
+  Serial.println((String)"prediccion " +  prediccionCapaSalida);
   Wire.beginTransmission(0x20); // Iniciar envio de datos con Esclavo
   Wire.write((byte*)& prediccionCapaSalida , sizeof(prediccionCapaSalida)); // Envio de datos con el tamaño
   Wire.endTransmission(); // Finalizacion envio de datos
@@ -146,14 +144,13 @@ void  sistemaRedNeuronal() {
   porcentajePrediccion = map(prediccionCapaSalida, 0, 9535.91, 0, 100); // Converir variable predecida en porcentaje
 
   // Asignar valor de variables en ultima posicion de arreglo de autorregresores
-  arregloVoltajes[2] = prediccionCapaSalida;
+  arregloVoltajes[1] = prediccionCapaSalida;
   arregloPwm[3] = pwmRed;
   arregloResistencia[3] = resistencia;
 
   // Realizar corrimiento de valores dentro del arreglo de autorregresores para siguiente prediccion
   // Corrimiento autorregresores de variable de prediccion (Voltaje)
   arregloVoltajes[0] = arregloVoltajes[1];
-  arregloVoltajes[1] = arregloVoltajes[2];
 
   // Corrimiento autorregresores de variables pwm
   arregloPwm[0] = arregloPwm[1];
@@ -174,8 +171,9 @@ float logic(float n)
 
 void red ()
 {
+  Serial.println((String) pwmRed + ", " + pwm1 + ", " + pwm2 + ", " + pwm3 + ", " + resistencia + ", " + resistencia1 + ", " + resistencia2 + ", " + resistencia3 + ", " + voltaje1);
   //valores normalizados
-  float Npwm = (pwmMotor - 30) / (251 - 30); // Variable normarlizada valor Pwm
+  float Npwm = (pwmRed - 30) / (251 - 30); // Variable normarlizada valor Pwm
   float NpwmR1 = (pwm1 - 30) / (251 - 30); // Variable normalizada valor Pwm con un autorregresor
   float NpwmR2 = (pwm2 - 30) / (251 - 30); // Variable normalizada valor Pwm con dos autorregresores
   float NpwmR3 = (pwm3 - 30) / (251 - 30); // Variable normalizada valor Pwm con tres autorregresores
@@ -184,19 +182,16 @@ void red ()
   float NresistenciaR2 = resistencia2 / 24; // Variable normalizada valor resistencia con dos autorregresores
   float NresistenciaR3 = resistencia3 / 24; // Variable normalizada valor resistencia con dos autorregresores
   float NVoltajeR1 = (voltaje1 - (-0.09)) / (9535.91 - (-0.09)); // Variable normarlizada valor voltaje con un autorregresor
-  float NVoltajeR2 = (voltaje2 - (-0.09)) / (9535.91 - (-0.09)); // Variable normarlizada valor voltaje con dos autorregresores
+
 
   // Primera capa oculta
   for (int i = 0 ; i <= 3 ; i++)
   {
-    salidaCapaUno[i] = logic(pesoVacioUno[i] + ((Npwm * pesoEntrada[0][i]) + (NpwmR1 * pesoEntrada[1][i]) + (NpwmR2 * pesoEntrada[2][i]) + (NpwmR3 * pesoEntrada[3][i])
-                             + (Nresistencia * pesoEntrada[4][i]) + (NresistenciaR1 * pesoEntrada[5][i]) + (NresistenciaR2 * pesoEntrada[6][i])
-                             + (NresistenciaR3 * pesoEntrada[7][i]) + (NVoltajeR1 * pesoEntrada[8][i]) + (NVoltajeR2 * pesoEntrada[9][i])));
+    salidaCapaUno[i] = logic(pesoVacioUno[i] + ((Npwm * pesoEntrada[0][i]) + (NpwmR1 * pesoEntrada[1][i]) + (NpwmR2 * pesoEntrada[2][i]) + (NpwmR3 * pesoEntrada[3][i]) + (Nresistencia * pesoEntrada[4][i]) + (NresistenciaR1 * pesoEntrada[5][i]) + (NresistenciaR2 * pesoEntrada[6][i]) + (NresistenciaR3 * pesoEntrada[7][i]) + (NVoltajeR1 * pesoEntrada[8][i])));
   }
 
   // salida
-  prediccionCapaSalida = (pesoVacioSalida + ((salidaCapaUno[0] * pesoSalida[0]) + (salidaCapaUno[1] * pesoSalida[1]) + (salidaCapaUno[2] * pesoSalida[2])
-                          + (salidaCapaUno[3] * pesoSalida[3])));
+  prediccionCapaSalida = (pesoVacioSalida + ((salidaCapaUno[0] * pesoSalida[0]) + (salidaCapaUno[1] * pesoSalida[1]) + (salidaCapaUno[2] * pesoSalida[2]) + (salidaCapaUno[3] * pesoSalida[3])));
 
   // Qquitar normalizacion
   prediccionCapaSalida = (prediccionCapaSalida * (9535.91 - (-0.09))) + (-0.09);
@@ -210,6 +205,7 @@ void sistemaFisico() {
     svGenerador = sensorGeneradorP.getShuntVoltage_mV(); // Voltaje en la resistencia Shunt
     faGenerador = sensorGeneradorP.getBusVoltage_V(); // Voltaje en la fuente de alimentacion
     vGenerador = (faGenerador * 1000) + svGenerador; // Voltaje en la entrada de la carga
+    vGeneradorSuma = vGeneradorSuma + vGenerador;
   }
   vGenerador = vGeneradorSuma / 100;
 
@@ -238,7 +234,7 @@ void sistemaFisico() {
     Cv = P + I; // Obtener variable de control
 
     Cv = constrain(Cv, 0, 255); // Restringir numero para que este dentro de rango de 0 a 255
-
+    // Serial.println((String)"pv  "+ Pv+ " cv " + Cv + " Sp " + Sp);
     analogWrite(motorP, Cv); // Enviar valor de ciclo util a motor
   }
 }
