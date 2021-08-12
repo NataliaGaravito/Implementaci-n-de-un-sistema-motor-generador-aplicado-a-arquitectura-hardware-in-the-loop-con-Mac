@@ -14,6 +14,7 @@ Por otra parte, la inteligencia artificial aplicada a redes neuronales, es impor
 
 Cada uno de los codigos viene comentado para mejor interpretacion del usuario.
 
+* Toma_muestras.ino : Archivo el cual contiene el codigo para realizar la toma de muestras para posterior entrenamiento de la red neuronal
 * Sensor_virtual_prediccion_corriente_generador_Pololu_entrenamiento_ANN.ipynb : Archivo el cual contiene el entrenamiento de la ANN implementada en el sensor virual para la prediccion de corriente del generador Pololu. este archivo esta importado desde la herramienta Google Colab.
 * Sensor_virtual_prediccion_corriente_generador_pololu_sistema_embebido.ino : Archivo en el cual se implementa el sensor virtual en el sistema embebido, programado en Arduino Mega e importado desde el IDE de Arduino. 
 * HIL_entrenamiento_ANN.ipynb : Archivo el cual contiene el entrenamiento de la ANN implementada en el HIL. este archivo esta importado desde la herramienta Google Colab.
